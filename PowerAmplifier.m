@@ -32,7 +32,7 @@ classdef PowerAmplifier
          obj.sparsity_factor = 1;
          
          if obj.derive_from_warp
-            obj = obj.perform_lms_learning(signal)
+            obj = obj.perform_lms_learning(signal);
          else
             % Wiener Power Amplifier Model
             PolyOrder   = 5;        % PA polynomial order
