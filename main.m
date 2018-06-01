@@ -24,7 +24,8 @@ clear; clc; close all;
 %     + EVM
 
 %% Set up the experiment
-PA_board = 'none'; % either 'none' or 'WARP'
+
+PA_board = 'WARP'; %  either 'webRF' or 'WARP'
 
 switch PA_board
    case 'WARP'
