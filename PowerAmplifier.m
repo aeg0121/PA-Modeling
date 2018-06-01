@@ -2,13 +2,13 @@ classdef PowerAmplifier
    %PowerAmplifier Construct a PA and broadcast.
    
    properties
-      type
       PolyCoeffs
-      derive_from_warp
+      create_model
       order
       memory_depth
       mse_of_fit
       sparsity_factor
+      node_tx
    end
    properties (Constant)
       WienerFilter_B = [1;0.2];
@@ -16,22 +16,22 @@ classdef PowerAmplifier
    end
    
    methods
-      function obj = PowerAmplifier(type, signal, order, memory_depth)
+      function obj = PowerAmplifier(create_model, signal, order, memory_depth)
          %POWERAMPLIFIER Construct an instance of this class
          %
          % Args:
-         %     type:    string with the type of PA to use. 'Weiner' or 'PH'
+         %     create_model: 1 or 0. Tells it to use lms learning on input/output relationship of signal.
          %     order:   int with PA order. Should be odd. 1, 3, 5, etc.
          %     memory_depth: int with number of taps in FIR filter
          
          
-         obj.type = type; %TODO. Add new PA models. Maybe use subclasses for different types
-         obj.derive_from_warp = 1;
+         obj.create_model = create_model;
          obj.order = order;
          obj.memory_depth = memory_depth;
          obj.sparsity_factor = 1;
+         obj.node_tx.serialNumber = 9999;  %Serial number to avoid error when running code with no board.
          
-         if obj.derive_from_warp
+         if obj.create_model
             obj = obj.perform_lms_learning(signal);
          else
             % Wiener Power Amplifier Model
@@ -97,7 +97,7 @@ classdef PowerAmplifier
          %	Author:	Chance Tarver (2018)
          %		tarver.chance@gmail.com
          %         
-         if obj.derive_from_warp
+         if obj.create_model
             number_of_basis_vectors = obj.memory_depth * (obj.order + 1)/2;
             X = zeros(length(in), number_of_basis_vectors);
             
