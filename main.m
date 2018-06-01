@@ -24,7 +24,7 @@ clear; clc; close all;
 %     + EVM
 
 %% Set up the experiment
-PA_board = 'WARP'; % either 'webRF' or 'WARP'
+PA_board = 'none'; % either 'none' or 'WARP'
 
 switch PA_board
    case 'WARP'
@@ -32,16 +32,12 @@ switch PA_board
       board = WARP(1);
       channel = 1+0i;
       
-   case 'webRF'
+   case 'none'
       % webRF needs 200 MHz sampling rate. Also needs even number of
       % samples
       signal = OFDM(5, '16QAM', 200e6);
       channel = 1+0i;
-      board = webRF();
-      
-   case 'model'
-      %board = PowerAmplifier('weiner', 10);
-      
+      board = PowerAmplifier(0, '', 5, 5);  
 end
 
 % TX
@@ -58,7 +54,7 @@ signal.post_pa.fd_symbols = signal.time_domain_to_frequency(signal.post_pa.time_
  pa_model_71,table_71,pa_model_72,table_72,pa_model_73,table_73,pa_model_74,table_74,...
  pa_model_91,table_91,pa_model_92,table_92,pa_model_93,table_93,pa_model_94,table_94] = evaluate_pa_models(signal,board.node_tx.serialNumber);
 
-% %% Plots
+%% Plots
 % plot_results('psd', 'PA Input', signal.pre_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
 % plot_results('psd', 'PA Output', signal.post_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
 % 
