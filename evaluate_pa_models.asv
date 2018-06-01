@@ -184,12 +184,12 @@ sd = table(1,:);
 for x = 1:length(model.PolyCoeffs)
     new_row(1,x) = {model.PolyCoeffs(x)};
     absolute_average(1,x) = {mean([abs(table.(x)); abs(new_row.(x))])};
-    sd(1,x) = {std([abs(table.(x));abs(new_row.(x))])};
-    new_row.Properties.RowNames(1) = {num2str(rand)};
+    sd(1,x) = {sqrt(sum(([abs(table.(x));abs(new_row.(x))] - absolute_average{1,x})).^2/size(table,1))};
 end
 new_row(1,x+1) = {model.mse_of_fit};
 absolute_average(1,x+1) = {mean([table.(x+1);new_row.(x+1)])};
-sd(1,x+1) = {std([abs(table.(x+1));abs(new_row.(x+1))])};
+sd(1,x+1) = {sqrt(sum(([abs(table.(x+1));abs(new_row.(x))] - absolute_average{1,x+1}).^2)/(size(table,1)))};  
+new_row.Properties.RowNames(1) = {num2str(rand)};
 absolute_average.Properties.RowNames(1) = {'Absolute Average'};
 sd.Properties.RowNames(1) = {'Standard Deviation'};
 table = [table;new_row;absolute_average;sd];    
