@@ -12,6 +12,7 @@ classdef OFDM
       post_pa
       optimal
       statistics
+      use_random
    end
    properties (Constant, Hidden)
       %	Properties tied to the LTE standard that we may reference to help
@@ -25,17 +26,21 @@ classdef OFDM
       SUBCARRIER_SPACING = 15e3;
    end
    methods
-      function obj = OFDM(bandwidth, modulation, desired_rate)
+      function obj = OFDM(bandwidth, modulation, desired_rate, number_of_symbols, use_random)
          %OFDM Construct an instance of this class. Will create an OFDM
          %signal in the frequency and time domain. Will also upsample for PA
          %
          % Args:
          %     bandwidth:  Actual BW of signal. Must be standard for LTE.
          %     modulation: 'QPSK','16QAM', or '64QAM'
+         %     desired_rate: Desired sampling rate in Hz for TX and RX. Will upsample to this.
+         %     number_of_symbols: int. number of OFDM symbols to create
+         %     use_random: boolean. 1 = random signal, 0 = predefined OFDM
+         %     signal for repeatability.
          %
          %	Author:	Chance Tarver (2018)
          %		tarver.chance@gmail.com
-         %  
+         %
          
          %Set up some dictionaries
          RB_dictionary = containers.Map(obj.bandwidth_library, ...
@@ -49,6 +54,8 @@ classdef OFDM
          obj.settings.fft_size = 2^ceil(log2(obj.settings.subcarriers_used));
          obj.settings.sampling_rate = obj.SUBCARRIER_SPACING * obj.settings.fft_size;
          obj.settings.symbol_alphabet = obj.QAM_Alphabet(modulation);
+         obj.settings.use_random = use_random;
+         obj.settings.number_of_symbols = number_of_symbols;
          
          %Set up upsampling and downsampling
          obj.settings.upsample_rate = floor(desired_rate/obj.settings.sampling_rate);
@@ -60,9 +67,16 @@ classdef OFDM
             1/obj.settings.upsample_rate 1], [1 1 0 0]);
          
          %Create random symbols on the constellation
-         obj.pre_pa.frequency_domain_symbols = zeros(obj.settings.subcarriers_used, 1);
-         obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
-            length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, 1)));
+         obj.pre_pa.frequency_domain_symbols = zeros(obj.settings.subcarriers_used, number_of_symbols);
+         if(use_random)
+            obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
+               length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, number_of_symbols)));
+         else
+            rng(0); % repeatable random seed
+            obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
+               length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, 1)));
+            rng shuffle; % seed with something else
+         end
          obj.pre_pa.frequency_domain_symbols = obj.normalize_symbols(obj.pre_pa.frequency_domain_symbols);
          obj.pre_pa.time_domain = obj.frequency_to_time_domain(obj.pre_pa.frequency_domain_symbols);
       end
@@ -76,14 +90,15 @@ classdef OFDM
          %
          %	Author:	Chance Tarver (2018)
          %		tarver.chance@gmail.com
-         %  
+         %
          
-         ifft_input = zeros(obj.settings.fft_size,1);
-         ifft_input(2:obj.settings.subcarriers_used/2 + 1) = ...
-            in(obj.settings.subcarriers_used/2 + 1:end);
-         ifft_input(end - obj.settings.subcarriers_used/2 + 1 :end) = ...
-            in(1:obj.settings.subcarriers_used/2);
-         out = ifft(ifft_input);
+         ifft_input = zeros(obj.settings.fft_size, obj.settings.number_of_symbols);
+         ifft_input(2:obj.settings.subcarriers_used/2 + 1, :) = ...
+            in(obj.settings.subcarriers_used/2 + 1:end, :);
+         ifft_input(end - obj.settings.subcarriers_used/2 + 1 :end, :) = ...
+            in(1:obj.settings.subcarriers_used/2, :);
+         ifft_output = ifft(ifft_input);
+         out = ifft_output(:); % make a single column
       end
       
       function out = time_domain_to_frequency(obj, in)
@@ -97,8 +112,9 @@ classdef OFDM
          %
          %	Author:	Chance Tarver (2018)
          %		tarver.chance@gmail.com
-         %  
-         fftout = fft(in);
+         %
+         fft_in = reshape(in,obj.settings.fft_size,obj.settings.number_of_symbols);
+         fftout = fft(fft_in);
          
          out = zeros(obj.settings.subcarriers_used, 1);
          out(1:obj.settings.subcarriers_used/2) = fftout(end - obj.settings.subcarriers_used/2 + 1:end);
@@ -123,16 +139,19 @@ classdef OFDM
          alphabet = const_qam;
       end
       function out = normalize_symbols(obj,in)
-         % Normalize the symbols so that expected square value of any is 1
-         symbols_normalized = sqrt(obj.settings.fft_size) * in / (norm(in));
-         
-         % Sanity Check. Calculate expected square value of this vector.
-         total = sum(abs(symbols_normalized).^2);
-         expected_value = total / obj.settings.fft_size;
-         if abs(1 - expected_value) > 0.01
-            error("Not properly normalized");
+         out = zeros(obj.settings.subcarriers_used, obj.settings.number_of_symbols);
+         for i = 1:obj.settings.number_of_symbols
+            % Normalize the symbols so that expected square value of any is 1
+            symbols_normalized = sqrt(obj.settings.fft_size) * in(:,i) / (norm(in(:,i)));
+            
+            % Sanity Check. Calculate expected square value of this vector.
+            total = sum(abs(symbols_normalized).^2);
+            expected_value = total / obj.settings.fft_size;
+            if abs(1 - expected_value) > 0.01
+               error("Not properly normalized");
+            end
+            out(:,i) = symbols_normalized;
          end
-         out = symbols_normalized;
       end
       function out = up_sample(obj, in)
          out = upfirdn(in, obj.tools.upsample_rrcFilter, obj.settings.upsample_rate);
@@ -149,7 +168,7 @@ classdef OFDM
          
          % Downsampling
          out = downsample(compensate_for_upsampling_rrc, obj.settings.upsample_rate);
-         out = out(1:512);
+         out = out(1:512*obj.settings.number_of_symbols);
       end
       function obj = calculate_PAPR(obj)
          

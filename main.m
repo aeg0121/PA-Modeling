@@ -2,8 +2,8 @@ clear; clc; close all;
 
 %% TODO:
 % - Add other PA types
+% - Make a whitenoise class
 % - MIMO
-% - Multiple Symbols
 % - Add statistics.
 %     + SNR
 %     + ACLR
@@ -11,32 +11,23 @@ clear; clc; close all;
 % FIR Filter for subsample delay estimation/correction. 
 
 
-% DONE:
-% - Create forward PA model of WARP before optimization
-% - Fix hardcoding in the downsampling
-% - Add WARP as a PA option
-% - Add memory effects into model
-% - Add webRF option
-% - Metric for Evaluating PA models' fit. MSE or something
-% - Sparsity option for FIR filter tap in model
-% - Add statistics.
-%     + PAPR
-%     + EVM
-
 %% Set up the experiment
 
-PA_board = 'WARP'; %  either 'webRF' or 'WARP'
-rng(0);
+
+PA_board = 'WARP'; %  either 'WARP' or 'none'
+number_of_symbols = 10;
+random_signal = 1; 
+desired_sampling_rate = 40e6;
+signal_bw = 5;
+
+
 switch PA_board
    case 'WARP'
-      signal = OFDM(5, 'QPSK', 40e6);
+      signal = OFDM(signal_bw, 'QPSK', desired_sampling_rate, number_of_symbols, random_signal);
       board = WARP(1);
-      channel = 1+0i;
-rng('default');      
+      channel = 1+0i;    
    case 'none'
-      % webRF needs 200 MHz sampling rate. Also needs even number of
-      % samples
-      signal = OFDM(5, '16QAM', 200e6);
+      signal = OFDM(signal_bw, '16QAM', desired_sampling_rate, number_of_symbols, random_signal);
       channel = 1+0i;
       board = PowerAmplifier(0, '', 5, 5);  
 end
@@ -56,17 +47,11 @@ signal.post_pa.fd_symbols = signal.time_domain_to_frequency(signal.post_pa.time_
  pa_model_91,table_91,pa_model_92,table_92,pa_model_93,table_93,pa_model_94,table_94] = evaluate_pa_models(signal,board.node_tx.serialNumber);
 
 %% Plots
-% plot_results('psd', 'PA Input', signal.pre_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
-% plot_results('psd', 'PA Output', signal.post_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
-% 
-% %plot_results('symbols', 'Original Symbols', signal.pre_pa.frequency_domain_symbols);
-% %plot_results('symbols', 'Received Symbols', signal.post_pa.fd_symbols);
-% 
-% plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols);
-% plot_results('constellation', 'Received Symbols', signal.post_pa.fd_symbols);
-% 
-% plot_results('am/am', 'Original Signal', signal.pre_pa.upsampled_td, signal.post_pa.upsampled_td);
-% plot_results('model', '9th Order, 2 Taps', pa_model.transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
-% %plot_results('model', '7th Order, 3 Taps', pa_model_52.transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
-% %plot_results('model', '7th Order, 5 Taps', pa_model_71.transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
-% %plot_results('pa_out', ['Actual PA Output' 'Real PA Output'], lms.beta, signal.post_pa.upsampled_td);
+plot_results('psd', 'PA Input', signal.pre_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
+plot_results('psd', 'PA Output', signal.post_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
+
+plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols);
+plot_results('constellation', 'Received Symbols', signal.post_pa.fd_symbols);
+
+plot_results('am/am', 'Original Signal', signal.pre_pa.upsampled_td, signal.post_pa.upsampled_td);
+plot_results('model', '9th Order, 2 Taps', pa_model_92.transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
