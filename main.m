@@ -11,21 +11,9 @@ clear; clc; close all;
 % FIR Filter for subsample delay estimation/correction. 
 
 
-% DONE:
-% - Create forward PA model of WARP before optimization
-% - Fix hardcoding in the downsampling
-% - Add WARP as a PA option
-% - Add memory effects into model
-% - Add webRF option
-% - Metric for Evaluating PA models' fit. MSE or something
-% - Sparsity option for FIR filter tap in model
-% - Add statistics.
-%     + PAPR
-%     + EVM
-
 %% Set up the experiment
 
-PA_board = 'WARP'; %  either 'webRF' or 'WARP'
+PA_board = 'WARP'; %  either 'WARP' or 'none'
 % rng(0);
 switch PA_board
    case 'WARP'
