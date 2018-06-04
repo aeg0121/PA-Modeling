@@ -13,17 +13,13 @@ clear; clc; close all;
 
 %% Set up the experiment
 
-PA_board = 'WARP'; %  either 'WARP' or 'none'
-% rng(0);
+PA_board = 'none'; %  either 'WARP' or 'none'
 switch PA_board
    case 'WARP'
       signal = OFDM(5, 'QPSK', 40e6, 1);
       board = WARP(1);
-      channel = 1+0i;
-% rng('default');      
+      channel = 1+0i;   
    case 'none'
-      % webRF needs 200 MHz sampling rate. Also needs even number of
-      % samples
       signal = OFDM(5, '16QAM', 40e6, 0);
       channel = 1+0i;
       board = PowerAmplifier(0, '', 5, 5);  
