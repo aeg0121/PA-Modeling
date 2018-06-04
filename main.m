@@ -3,7 +3,6 @@ clear; clc; close all;
 %% TODO:
 % - Add other PA types
 % - MIMO
-% - Multiple Symbols
 % - Add statistics.
 %     + SNR
 %     + ACLR
@@ -14,13 +13,18 @@ clear; clc; close all;
 %% Set up the experiment
 
 PA_board = 'none'; %  either 'WARP' or 'none'
+number_of_symbols = 10;
+random_signal = 1; 
+desired_sampling_rate = 40e6;
+signal_bw = 5;
+
 switch PA_board
    case 'WARP'
-      signal = OFDM(5, 'QPSK', 40e6, 1);
+      signal = OFDM(signal_bw, 'QPSK', desired_sampling_rate, number_of_symbols, random_signal);
       board = WARP(1);
       channel = 1+0i;   
    case 'none'
-      signal = OFDM(5, '16QAM', 40e6, 0);
+      signal = OFDM(signal_bw, '16QAM', desired_sampling_rate, number_of_symbols, random_signal);
       channel = 1+0i;
       board = PowerAmplifier(0, '', 5, 5);  
 end
