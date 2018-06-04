@@ -76,7 +76,7 @@ classdef PowerAmplifier
                count = count + 1;
             end
          end
-         obj.PolyCoeffs = (X'*X)^-1*X'*y;
+         obj.PolyCoeffs = (X'*X)^-1 * (X'*y);
          
          model_pa_output = obj.transmit(x);
          
