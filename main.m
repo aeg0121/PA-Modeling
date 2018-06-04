@@ -17,7 +17,7 @@ PA_board = 'WARP'; %  either 'WARP' or 'none'
 % rng(0);
 switch PA_board
    case 'WARP'
-      signal = OFDM(5, 'QPSK', 40e6);
+      signal = OFDM(5, 'QPSK', 40e6, 1);
       board = WARP(1);
       channel = 1+0i;
 % rng('default');      

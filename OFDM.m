@@ -12,6 +12,7 @@ classdef OFDM
       post_pa
       optimal
       statistics
+      use_random
    end
    properties (Constant, Hidden)
       %	Properties tied to the LTE standard that we may reference to help
@@ -25,17 +26,22 @@ classdef OFDM
       SUBCARRIER_SPACING = 15e3;
    end
    methods
-      function obj = OFDM(bandwidth, modulation, desired_rate)
+      function obj = OFDM(bandwidth, modulation, desired_rate, use_random)
          %OFDM Construct an instance of this class. Will create an OFDM
          %signal in the frequency and time domain. Will also upsample for PA
          %
          % Args:
          %     bandwidth:  Actual BW of signal. Must be standard for LTE.
          %     modulation: 'QPSK','16QAM', or '64QAM'
+         %     desired_rate: Desired sampling rate in Hz for TX and RX. Will upsample to this.
+         %     use_random: boolean. 1 = random signal, 0 = predefined OFDM
+         %     signal for repeatability.
          %
          %	Author:	Chance Tarver (2018)
          %		tarver.chance@gmail.com
-         %  
+         %
+         
+         obj.use_random = use_random;
          
          %Set up some dictionaries
          RB_dictionary = containers.Map(obj.bandwidth_library, ...
@@ -61,8 +67,15 @@ classdef OFDM
          
          %Create random symbols on the constellation
          obj.pre_pa.frequency_domain_symbols = zeros(obj.settings.subcarriers_used, 1);
-         obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
-            length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, 1)));
+         if(use_random)
+            obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
+               length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, 1)));
+         else
+            rng(0); % repeatable random seed
+             obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
+               length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, 1)));
+            rng shuffle; % seed with something else
+         end
          obj.pre_pa.frequency_domain_symbols = obj.normalize_symbols(obj.pre_pa.frequency_domain_symbols);
          obj.pre_pa.time_domain = obj.frequency_to_time_domain(obj.pre_pa.frequency_domain_symbols);
       end
@@ -76,7 +89,7 @@ classdef OFDM
          %
          %	Author:	Chance Tarver (2018)
          %		tarver.chance@gmail.com
-         %  
+         %
          
          ifft_input = zeros(obj.settings.fft_size,1);
          ifft_input(2:obj.settings.subcarriers_used/2 + 1) = ...
@@ -97,7 +110,7 @@ classdef OFDM
          %
          %	Author:	Chance Tarver (2018)
          %		tarver.chance@gmail.com
-         %  
+         %
          fftout = fft(in);
          
          out = zeros(obj.settings.subcarriers_used, 1);
