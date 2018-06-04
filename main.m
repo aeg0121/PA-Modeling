@@ -24,7 +24,7 @@ switch PA_board
    case 'none'
       % webRF needs 200 MHz sampling rate. Also needs even number of
       % samples
-      signal = OFDM(5, '16QAM', 200e6);
+      signal = OFDM(5, '16QAM', 40e6, 0);
       channel = 1+0i;
       board = PowerAmplifier(0, '', 5, 5);  
 end
