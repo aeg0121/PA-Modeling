@@ -176,23 +176,35 @@ end
 
 function table = pa_model_table_append(model,table)
 if size(table,1) ~= 1
-    table = table(1:end-2,:);
+    table = table(1:end-5,:);
 end    
 new_row = table(1,:);
+med = table(1,:);
 absolute_average = table(1,:);
 sd = table(1,:);
+prct5 = table(1,:);
+prct95 = table(1,:);
 for x = 1:length(model.PolyCoeffs)
     new_row(1,x) = {model.PolyCoeffs(x)};
+    med(1,x) = {median([abs(table.(x)); abs(new_row.(x))])};
     absolute_average(1,x) = {mean([abs(table.(x)); abs(new_row.(x))])};
-    sd(1,x) = {sqrt(sum(([abs(table.(x));abs(new_row.(x))] - absolute_average{1,x})).^2/size(table,1))};
+    sd(1,x) = {std([abs(table.(x));abs(new_row.(x))])};
+    prct5(1,x) = {prctile([abs(table.(x)); abs(new_row.(x))], 5)};
+    prct95(1,x) = {prctile([abs(table.(x)); abs(new_row.(x))], 95)};    
 end
 new_row(1,x+1) = {model.mse_of_fit};
+med(1,x+1) = {median([table.(x+1);new_row.(x+1)])};
 absolute_average(1,x+1) = {mean([table.(x+1);new_row.(x+1)])};
-sd(1,x+1) = {sqrt(sum(([abs(table.(x+1));abs(new_row.(x))] - absolute_average{1,x+1}).^2)/(size(table,1)))};  
-new_row.Properties.RowNames(1) = {num2str(rand)};
+sd(1,x+1) = {std([abs(table.(x+1));abs(new_row.(x+1))])};
+prct5(1,x+1) = {prctile([abs(table.(x+1)); abs(new_row.(x+1))], 5)};
+prct95(1,x+1) = {prctile([abs(table.(x+1)); abs(new_row.(x+1))], 95)};
+new_row.Properties.RowNames(1) = {num2str(32)};
+med.Properties.RowNames(1) = {'Median'};
 absolute_average.Properties.RowNames(1) = {'Absolute Average'};
 sd.Properties.RowNames(1) = {'Standard Deviation'};
-table = [table;new_row;absolute_average;sd];    
+prct5.Properties.RowNames(1) = {'5th Percentile'};
+prct95.Properties.RowNames(1) = {'95th Percentile'};
+table = [table;new_row;med;absolute_average;sd;prct5;prct95]; 
 end
 
 

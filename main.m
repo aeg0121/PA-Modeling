@@ -13,17 +13,19 @@ clear; clc; close all;
 
 %% Set up the experiment
 
-PA_board = 'none'; %  either 'WARP' or 'none'
+
+PA_board = 'WARP'; %  either 'WARP' or 'none'
 number_of_symbols = 10;
 random_signal = 1; 
 desired_sampling_rate = 40e6;
 signal_bw = 5;
 
+
 switch PA_board
    case 'WARP'
       signal = OFDM(signal_bw, 'QPSK', desired_sampling_rate, number_of_symbols, random_signal);
       board = WARP(1);
-      channel = 1+0i;   
+      channel = 1+0i;    
    case 'none'
       signal = OFDM(signal_bw, '16QAM', desired_sampling_rate, number_of_symbols, random_signal);
       channel = 1+0i;
