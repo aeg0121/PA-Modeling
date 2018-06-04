@@ -74,7 +74,7 @@ classdef OFDM
          else
             rng(0); % repeatable random seed
             obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
-               length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, 1)));
+               length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, number_of_symbols)));
             rng shuffle; % seed with something else
          end
          obj.pre_pa.frequency_domain_symbols = obj.normalize_symbols(obj.pre_pa.frequency_domain_symbols);
