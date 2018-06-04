@@ -4,7 +4,7 @@ function plot_results(type, label, data, data2)
 switch type
    case 'constellation'
       figure(2); hold on; grid on;
-      plot(data, 'x','DisplayName',label);
+      plot(data(:), 'x','DisplayName',label);
       title('Constellation')
       legend(gca,'show');
       
