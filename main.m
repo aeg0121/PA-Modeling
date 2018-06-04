@@ -2,6 +2,7 @@ clear; clc; close all;
 
 %% TODO:
 % - Add other PA types
+% - Make a whitenoise class
 % - MIMO
 % - Add statistics.
 %     + SNR
