@@ -90,7 +90,8 @@ classdef PowerAmplifier
          obj.PolyCoeffs = (X'*X) \ (X'*y);
          model_pa_output = obj.transmit(x);
          
-         obj.mse_of_fit = norm(y - model_pa_output);
+         %obj.mse_of_fit = mean(abs(y-model_pa_output).^2);
+         obj.mse_of_fit = norm(y - model_pa_output)^2 / norm(y)^2;
       end
       
       function pa_output = transmit(obj, in)

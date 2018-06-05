@@ -52,7 +52,7 @@ switch type
       set(gca,'XTickLabel',{'1st Order', '3rd Order', '5th Order', '7th Order', '9th Order'});
       legend('1 Tap', '2 Tap', '3 Tap', '4 Tap');
       xlabel('Maximum Nonlineraity Order of Model')
-      ylabel('MSE of PA Model Fit');
+      ylabel('NMSE of PA Model Fit');
       grid on;
 end
 end
