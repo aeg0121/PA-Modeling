@@ -14,7 +14,7 @@ clear; clc; close all;
 %% Set up the experiment
 
 
-PA_board = 'none'; %  either 'WARP' or 'none'
+PA_board = 'WARP'; %  either 'WARP' or 'none'
 number_of_symbols = 10;
 random_signal = 1; 
 desired_sampling_rate = 40e6;
@@ -27,7 +27,7 @@ switch PA_board
       board = WARP(1);
       channel = 1+0i;    
    case 'none'
-      signal = OFDM(signal_bw, '16QAM', desired_sampling_rate, number_of_symbols, random_signal);
+      signal = OFDM(signal_bw, 'QPSK', desired_sampling_rate, number_of_symbols, random_signal);
       channel = 1+0i;
       board = PowerAmplifier(0, '', 5, 5);  
 end
@@ -40,7 +40,9 @@ signal.post_pa.time_domain  = signal.post_pa.time_domain / ...
    norm(signal.post_pa.time_domain) * norm(signal.pre_pa.time_domain);
 signal.post_pa.fd_symbols = signal.time_domain_to_frequency(signal.post_pa.time_domain);
 
-[pa_models, pa_tabels] = evaluate_pa_models(signal,board.node_tx.serialNumber);
+pa_models = evaluate_pa_models(signal,board.node_tx.serialNumber);
+
+pa_tables = PA_Tables(pa_models);
 
 %% Plots
 plot_results('psd', 'PA Input', signal.pre_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);

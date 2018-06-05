@@ -1,4 +1,4 @@
-function [pa_models, pa_tables] = evaluate_pa_models(signal,number)
+function pa_models = evaluate_pa_models(signal,number)
 %evaluate_pa_models Create models with different nonlinear orders and
 %memory depths. Plot the MSE of each and return a good model.
 
@@ -22,7 +22,5 @@ end
 % Arrange in the order I need for bar graph.
 mse = mse_transpose';
 plot_results('mse', mse);
-
-pa_tables = PA_Tables(pa_models);
 
 end

@@ -29,7 +29,7 @@ classdef PA_Tables
                 for i = 1:2:MAX_NONLINEAR_ORDER
                     for j = 1:MAX_MEMORY_ORDER
                         index = sprintf('order%d%d',i,j);
-                        obj.tables.(index) = array2table(zeros(1,i*j+1));%table(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'RowNames',{num2str(number)}); MIGHTNEED TO ADD ROW NAMES
+                        obj.tables.(index) = array2table(zeros(1,j*(i+1)/2+1));%table(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'RowNames',{num2str(number)}); MIGHTNEED TO ADD ROW NAMES
                         obj = obj.pa_model_table(pa_models(i,j), i, j);
                     end
                 end
