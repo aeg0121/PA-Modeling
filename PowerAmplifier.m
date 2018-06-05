@@ -24,6 +24,9 @@ classdef PowerAmplifier
          %     order:   int with PA order. Should be odd. 1, 3, 5, etc.
          %     memory_depth: int with number of taps in FIR filter
          
+         if nargin == 0
+            return; 
+         end
          
          obj.create_model = create_model;
          obj.order = order;
