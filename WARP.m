@@ -175,6 +175,7 @@ classdef WARP  < handle
                  warning('Underflow in ADC. Increaseing RX gain.');
                  obj.gains.RxGainBB = obj.gains.RxGainBB + 1;
              else
+                 obj.gains.RxGainBB % Print so user can see final value
                  break;
              end
              wl_interfaceCmd(obj.nodes, obj.ifc_ids.RF_ALL, 'rx_gains', ...

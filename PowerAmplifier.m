@@ -9,6 +9,7 @@ classdef PowerAmplifier
       mse_of_fit
       sparsity_factor
       node_tx
+      use_orthogonal
    end
    properties (Constant)
       WienerFilter_B = [1;0.2];
@@ -16,7 +17,7 @@ classdef PowerAmplifier
    end
    
    methods
-      function obj = PowerAmplifier(create_model, signal, order, memory_depth)
+      function obj = PowerAmplifier(create_model, signal, order, memory_depth, use_orthogonal)
          %POWERAMPLIFIER Construct an instance of this class
          %
          % Args:
@@ -33,6 +34,7 @@ classdef PowerAmplifier
          obj.memory_depth = memory_depth;
          obj.sparsity_factor = 1;
          obj.node_tx.serialNumber = 9999;  %Serial number to avoid error when running code with no board.
+         obj.use_orthogonal = use_orthogonal;
          
          if obj.create_model
             obj = obj.perform_lms_learning(signal);
@@ -79,9 +81,13 @@ classdef PowerAmplifier
                count = count + 1;
             end
          end
-         
-         obj.PolyCoeffs = ((X'*X)+1e-13*eye(size((X'*X)))) \ (X'*y) ;
-         
+         if obj.use_orthogonal
+            X = orth(X);
+            obj.PolyCoeffs = (X'*X) \ (X'*y);
+         else
+             obj.PolyCoeffs = ((X'*X)+1e-13*eye(size((X'*X)))) \ (X'*y) ;
+         end
+         obj.PolyCoeffs = (X'*X) \ (X'*y);
          model_pa_output = obj.transmit(x);
          
          obj.mse_of_fit = norm(y - model_pa_output);
@@ -114,7 +120,11 @@ classdef PowerAmplifier
                   X(:, count) = delayed_version;
                   count = count + 1;
                end
-            end         
+            end
+            
+            if obj.use_orthogonal
+                X = orth(X);
+            end
             
             pa_output = X * obj.PolyCoeffs;
             
