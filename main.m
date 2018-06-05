@@ -27,7 +27,7 @@ switch PA_board
       board = WARP(1);
       channel = 1+0i;    
    case 'none'
-      signal = OFDM(signal_bw, '16QAM', desired_sampling_rate, number_of_symbols, random_signal);
+      signal = OFDM(signal_bw, 'QPSK', desired_sampling_rate, number_of_symbols, random_signal);
       channel = 1+0i;
       board = PowerAmplifier(0, '', 5, 5);  
 end
@@ -40,11 +40,9 @@ signal.post_pa.time_domain  = signal.post_pa.time_domain / ...
    norm(signal.post_pa.time_domain) * norm(signal.pre_pa.time_domain);
 signal.post_pa.fd_symbols = signal.time_domain_to_frequency(signal.post_pa.time_domain);
 
-[pa_model_11,table_11,pa_model_12,table_12,pa_model_13,table_13,pa_model_14,table_14,...
- pa_model_31,table_31,pa_model_32,table_32,pa_model_33,table_33,pa_model_34,table_34,...   
- pa_model_51,table_51,pa_model_52,table_52,pa_model_53,table_53,pa_model_54,table_54,...
- pa_model_71,table_71,pa_model_72,table_72,pa_model_73,table_73,pa_model_74,table_74,...
- pa_model_91,table_91,pa_model_92,table_92,pa_model_93,table_93,pa_model_94,table_94] = evaluate_pa_models(signal,board.node_tx.serialNumber);
+pa_models = evaluate_pa_models(signal,board.node_tx.serialNumber);
+
+pa_tables = PA_Tables(pa_models);
 
 %% Plots
 plot_results('psd', 'PA Input', signal.pre_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
@@ -54,4 +52,4 @@ plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain
 plot_results('constellation', 'Received Symbols', signal.post_pa.fd_symbols);
 
 plot_results('am/am', 'Original Signal', signal.pre_pa.upsampled_td, signal.post_pa.upsampled_td);
-plot_results('model', '9th Order, 2 Taps', pa_model_92.transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
+plot_results('model', '9th Order, 2 Taps', pa_models(9,2).transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
