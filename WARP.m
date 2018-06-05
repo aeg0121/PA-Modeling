@@ -35,7 +35,7 @@ classdef WARP  < handle
          % RX variables
          obj.channels.RX        = 6;
          obj.gains.RxGainRF     = 1;  % Rx RF Gain in [1:3] (ignored if USE_AGC is true)
-         obj.gains.RxGainBB     = 5; % Rx Baseband Gain in [0:31] (ignored if USE_AGC is true)
+         obj.gains.RxGainBB     = 20; % Rx Baseband Gain in [0:31] (ignored if USE_AGC is true)
          obj.filters.RX_LPF     = 3;  % [0,1,2,3] for approx ![7.5,9.5,14,18]MHz corner
          obj.filters.RX_LPFFine = 2;  % Must be integer in [0,1,2,3,4,5] for [90,95,100,105,110]% scaling to LPF corner frequency     
          obj.filters.RX_HPF     = 0;  % Must be 0 (HPF corner of 100 Hz) or 1 (default; HPF corner of 30 kHz) This filter setting is only used when RXHP is 'disable' (ie 0)
@@ -151,25 +151,36 @@ classdef WARP  < handle
          
          txData1 = txData1 * max_amplitude / max_max;
          
-         
-         wl_basebandCmd(obj.node_tx, [obj.ifc_ids.RF_A], 'write_IQ', txData1);
-         
-         %Enable TX/RX nodes and their buffers
-         wl_interfaceCmd(obj.node_tx, obj.ifc_ids.RF_A, 'tx_en');
-         wl_basebandCmd(obj.node_tx, obj.ifc_ids.RF_A, 'tx_buff_en');
-         wl_interfaceCmd(obj.node_rx, obj.ifc_ids.RF_B, 'rx_en');
-         wl_basebandCmd(obj.node_rx, obj.ifc_ids.RF_B, 'rx_buff_en');
-         
-         %Send trigger to start
-         obj.eth_trig.send();
-         
-         %Get the values from the RX node
-         rx_iq    = wl_basebandCmd(obj.node_rx, [obj.ifc_ids.RF_B], 'read_IQ', 0, obj.rx_length);
-         %rx_rssi  = wl_basebandCmd(obj.node_rx, [obj.ifc_ids.RF_B], 'read_RSSI', 0, rssi_length);
-         
-         if max(abs(real(rx_iq)))>0.99 | max(abs(imag(rx_iq)))>0.99
-            error('Saturation in ADC. Please reduce TX or RX gain.');
+         % Loop to get the right gain setting on RX.
+         while(1)
+             wl_basebandCmd(obj.node_tx, [obj.ifc_ids.RF_A], 'write_IQ', txData1);
+             
+             %Enable TX/RX nodes and their buffers
+             wl_interfaceCmd(obj.node_tx, obj.ifc_ids.RF_A, 'tx_en');
+             wl_basebandCmd(obj.node_tx, obj.ifc_ids.RF_A, 'tx_buff_en');
+             wl_interfaceCmd(obj.node_rx, obj.ifc_ids.RF_B, 'rx_en');
+             wl_basebandCmd(obj.node_rx, obj.ifc_ids.RF_B, 'rx_buff_en');
+             
+             %Send trigger to start
+             obj.eth_trig.send();
+             
+             %Get the values from the RX node
+             rx_iq    = wl_basebandCmd(obj.node_rx, [obj.ifc_ids.RF_B], 'read_IQ', 0, obj.rx_length);
+             %rx_rssi  = wl_basebandCmd(obj.node_rx, [obj.ifc_ids.RF_B], 'read_RSSI', 0, rssi_length);
+             
+             if max(abs(real(rx_iq)))>0.99 | max(abs(imag(rx_iq)))>0.99
+                 warning('Saturation in ADC. Reducing RX gain.');
+                 obj.gains.RxGainBB = obj.gains.RxGainBB - 1;
+             elseif max(abs(real(rx_iq))) < 0.5 | max(abs(imag(rx_iq))) < 0.5
+                 warning('Underflow in ADC. Increaseing RX gain.');
+                 obj.gains.RxGainBB = obj.gains.RxGainBB + 1;
+             else
+                 break;
+             end
+             wl_interfaceCmd(obj.nodes, obj.ifc_ids.RF_ALL, 'rx_gains', ...
+                 obj.gains.RxGainRF, obj.gains.RxGainBB);
          end
+         
          
          %Turn things off
          wl_basebandCmd(obj.nodes, obj.ifc_ids.RF_A, 'tx_rx_buff_dis');
