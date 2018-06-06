@@ -16,6 +16,7 @@ classdef OFDM < Signal
         SUBCARRIERS_PER_RESOURCE_BLOCK = 12;
         SUBCARRIER_SPACING = 15e3;
     end
+    
     methods
         function obj = OFDM(bandwidth, modulation, desired_rate, number_of_symbols, use_random)
             %OFDM Construct an instance of this class. Will create an OFDM
@@ -71,6 +72,7 @@ classdef OFDM < Signal
             obj.pre_pa.frequency_domain_symbols = obj.normalize_symbols(obj.pre_pa.frequency_domain_symbols);
             obj.pre_pa.time_domain = obj.frequency_to_time_domain(obj.pre_pa.frequency_domain_symbols);
         end
+        
         function out = frequency_to_time_domain(obj, in)
             %frequency_to_time_domain Method that can be used to perform the
             %IDFT to go to the time domain signal for OFDM. It will
@@ -129,6 +131,7 @@ classdef OFDM < Signal
             const_qam = const_qam(:);
             alphabet = const_qam;
         end
+        
         function out = normalize_symbols(obj,in)
             out = zeros(obj.settings.subcarriers_used, obj.settings.number_of_symbols);
             for i = 1:obj.settings.number_of_symbols
@@ -144,9 +147,11 @@ classdef OFDM < Signal
                 out(:,i) = symbols_normalized;
             end
         end
+        
         function out = up_sample(obj, in)
             out = upfirdn(in, obj.tools.upsample_rrcFilter, obj.settings.upsample_rate);
         end
+        
         function out = down_sample(obj, in)
             
             % Anti alias filter
@@ -161,6 +166,7 @@ classdef OFDM < Signal
             out = downsample(compensate_for_upsampling_rrc, obj.settings.upsample_rate);
             out = out(1:512*obj.settings.number_of_symbols);
         end
+        
         function obj = transmit(obj, board, channel)
             obj.pre_pa.upsampled_td = obj.up_sample(obj.pre_pa.time_domain);
             obj.post_pa.upsampled_td = channel * board.transmit(obj.pre_pa.upsampled_td);
