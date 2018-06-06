@@ -33,14 +33,9 @@ switch PA_board
 end
 
 % TX
-signal.pre_pa.upsampled_td = signal.up_sample(signal.pre_pa.time_domain);
-signal.post_pa.upsampled_td = channel * board.transmit(signal.pre_pa.upsampled_td);
-signal.post_pa.time_domain = signal.down_sample(signal.post_pa.upsampled_td);
-signal.post_pa.time_domain  = signal.post_pa.time_domain / ...
-   norm(signal.post_pa.time_domain) * norm(signal.pre_pa.time_domain);
-signal.post_pa.fd_symbols = signal.time_domain_to_frequency(signal.post_pa.time_domain);
+signal = signal.transmit(board, channel);
 
-pa_models = evaluate_pa_models(signal,board.node_tx.serialNumber);
+pa_models = evaluate_pa_models(signal, board.node_tx.serialNumber);
 
 pa_tables = PA_Tables(pa_models);
 
