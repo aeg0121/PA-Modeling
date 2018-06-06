@@ -18,7 +18,7 @@ classdef OFDM < Signal
     end
     
     methods
-        function obj = OFDM(bandwidth, modulation, desired_rate, number_of_symbols, use_random)
+        function obj = OFDM(bandwidth, desired_rate, number_of_symbols, use_random, modulation)
             %OFDM Construct an instance of this class. Will create an OFDM
             %signal in the frequency and time domain. Will also upsample for PA
             %
@@ -148,24 +148,6 @@ classdef OFDM < Signal
             end
         end
         
-        function out = up_sample(obj, in)
-            out = upfirdn(in, obj.tools.upsample_rrcFilter, obj.settings.upsample_rate);
-        end
-        
-        function out = down_sample(obj, in)
-            
-            % Anti alias filter
-            filtered_signal = filter(obj.tools.downsample_antialias_filter, 1, in);
-            
-            compensate_for_filter_timing = filtered_signal(51:end); % Assume length 100 antialias filter
-            
-            delay = obj.settings.upsample_rate * obj.settings.upsample_span / 2;
-            compensate_for_upsampling_rrc = compensate_for_filter_timing(delay + 1:end);
-            
-            % Downsampling
-            out = downsample(compensate_for_upsampling_rrc, obj.settings.upsample_rate);
-            out = out(1:512*obj.settings.number_of_symbols);
-        end
         
         function obj = transmit(obj, board, channel)
             obj.pre_pa.upsampled_td = obj.up_sample(obj.pre_pa.time_domain);
