@@ -49,7 +49,7 @@ plot_results('psd', 'PA Input', signal.pre_pa.upsampled_td, signal.settings.samp
 plot_results('psd', 'PA Output', signal.post_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
 
 plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols);
-plot_results('constellation', 'Received Symbols', signal.post_pa.fd_symbols);
+plot_results('constellation', 'Received Symbols', signal.post_pa.frequency_domain_symbols);
 
 plot_results('am/am', 'Original Signal', signal.pre_pa.upsampled_td, signal.post_pa.upsampled_td);
 plot_results('model', '7th Order, 4 Taps', pa_models(7,4).transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
