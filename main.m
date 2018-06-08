@@ -7,7 +7,6 @@ clear; clc; close all;
 %     + SNR
 %     + ACLR
 % - Crest Factor Reduction
-% FIR Filter for subsample delay estimation/correction.
 
 %% Set up the experiment
 params.PA_board = 'WARP';      % either 'WARP', 'webRF', or 'none'
