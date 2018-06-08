@@ -10,7 +10,7 @@ clear; clc; close all;
 
 %% Set up the experiment
 params.PA_board = 'WARP';      % either 'WARP', 'webRF', or 'none'
-params.signal_type = 'OFDM';    % either 'OFDM' or 'WGN' or 'CA'
+params.signal_type = 'WGN';    % either 'OFDM' or 'WGN' or 'CA'
 params.use_random_signal = 1;   % 1 forces a new OFDM each time. 0 will use the same random OFDM signal
 params.signal_bw = 5;          % Bandwidth of the OFDM of WGN signal
 params.channel = 1+0i;
@@ -20,7 +20,7 @@ params.constellation = 'QPSK'; % Only used in OFDM
 params.number_of_symbols = 30;
 
 % Only used in WGN
-params.number_of_samples = 1000;
+params.number_of_samples = 10000;
 
 [board, signal] =  setup(params);
 
