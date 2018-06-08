@@ -2,7 +2,6 @@ clear; clc; close all;
 
 %% TODO:
 % - Add other PA types
-% - Make a whitenoise class
 % - MIMO
 % - Add statistics.
 %     + SNR
@@ -10,39 +9,26 @@ clear; clc; close all;
 % - Crest Factor Reduction
 % FIR Filter for subsample delay estimation/correction.
 
-
 %% Set up the experiment
+params.PA_board = 'WARP';      % either 'WARP', 'webRF', or 'none'
+params.signal_type = 'OFDM';    % either 'OFDM' or 'WGN' or 'CA'
+params.use_random_signal = 1;   % 1 forces a new OFDM each time. 0 will use the same random OFDM signal
+params.signal_bw = 5;          % Bandwidth of the OFDM of WGN signal
+params.channel = 1+0i;
 
+%Only used in OFDM
+params.constellation = 'QPSK'; % Only used in OFDM
+params.number_of_symbols = 30;
 
-PA_board = 'WARP'; %  either 'WARP' or 'none'
-signal_type = 'WGN'; %  either 'OFDM' or 'WGN'
-number_of_symbols = 1000;
-random_signal = 1;
-desired_sampling_rate = 40e6;
-signal_bw = 15;
+% Only used in WGN
+params.number_of_samples = 1000;
 
-switch PA_board
-    case 'WARP'
-        board = WARP(1);
-        channel = 1+0i;
-    case 'none'
-        signal = OFDM(signal_bw, 'QPSK', desired_sampling_rate, number_of_symbols, random_signal);
-        channel = 1+0i;
-        board = PowerAmplifier(0, '', 5, 5);
-end
-
-switch signal_type
-    case 'OFDM'
-        signal = OFDM(signal_bw, desired_sampling_rate, number_of_symbols, random_signal, 'QPSK');
-    case 'WGN'
-        signal = WhiteNoise(signal_bw, desired_sampling_rate, number_of_symbols, random_signal);
-end
+[board, signal] =  setup(params);
 
 % TX
-signal = signal.transmit(board, channel);
+signal = signal.transmit(board, params.channel);
 
 pa_models = evaluate_pa_models(signal, board.node_tx.serialNumber);
-
 pa_tables = PA_Tables(pa_models);
 
 %% Plots
@@ -55,4 +41,31 @@ try
     
     plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols);
     plot_results('constellation', 'Received Symbols', signal.post_pa.frequency_domain_symbols);
+end
+
+%% Helper Functions
+function [board, signal] = setup(params)
+switch params.PA_board
+    case 'WARP'
+        board = WARP(1);
+        params.desired_sampling_rate = 40e6;    % WARP board sampling rate.
+    case 'none'
+        board = PowerAmplifier(0, '', 5, 5);
+        params.desired_sampling_rate = 40e6;    % WARP board sampling rate.
+    case 'webRF'
+        board = webRF();
+        params.desired_sampling_rate = 200e6;   % webRF sampling rate.
+end
+
+switch params.signal_type
+    case 'OFDM'
+        signal = OFDM(params.signal_bw, params.desired_sampling_rate, ...
+            params.number_of_symbols, params.use_random_signal, params.constellation);
+    case 'CA'
+        signal = CarrierAggregation(params.signal_bw, params.desired_sampling_rate, ...
+            params.number_of_symbols, params.use_random_signal, params.constellation);
+    case 'WGN'
+        signal = WhiteNoise(params.signal_bw, params.desired_sampling_rate, ...
+            params.number_of_samples, params.use_random_signal);
+end
 end
