@@ -76,7 +76,7 @@ classdef PowerAmplifier
             branch = x .* abs(x).^(i-1);
             for j = 1:obj.memory_depth
                delayed_version = zeros(size(branch));
-               delayed_version(j*obj.sparsity_factor:end) = branch(1:end - j*obj.sparsity_factor + 1);
+               delayed_version((j-1)*obj.sparsity_factor + 1:end) = branch(1:end - (j-1)*obj.sparsity_factor);
                X(:, count) = delayed_version;
                count = count + 1;
             end
