@@ -18,7 +18,7 @@ classdef WhiteNoise < Signal
             obj.settings.use_random = use_random;
             obj.settings.number_of_symbols = length_in_samples;
             
-            obj.settings.sampling_rate = signal_bw;
+            obj.settings.sampling_rate = signal_bw*1e6;
             
             %Set up upsampling and downsampling
             obj.settings.upsample_rate = floor(desired_sampling_rate/(signal_bw*1e6));

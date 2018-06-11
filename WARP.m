@@ -55,6 +55,7 @@ classdef WARP  < handle
             obj.synchronization.delay = 40;
             obj.synchronization.phase = 0;
             obj.synchronization.done  = 0;
+            obj.synchronization.sub_sample = 1;
             
             obj.nodes = wl_initNodes(N); %Setup N boards
             
@@ -126,7 +127,7 @@ classdef WARP  < handle
             %
             % Args:
             %     txData1: vector of data to send
-            %     sync:    bool for performing sync or not.
+            %     sync:    bool for performing sync or not.           
             
             %Update the TX and RX lengths
             original_signal_input = txData1;
@@ -193,12 +194,24 @@ classdef WARP  < handle
                     obj = cyclosync(obj,rx_iq(obj.synchronization.delay:...
                         obj.synchronization.delay + length(txData1)-1),txData1);
                     obj.synchronization.done = 1 ; %Update flag
+                    
                 end
                 rx_iq = rx_iq / obj.synchronization.phase;
                 rx_iq = rx_iq(obj.synchronization.delay:obj.synchronization.delay + length(txData1)-1);
+                
             end
             
             out = rx_iq * norm(original_signal_input) / norm(rx_iq);
+            
+            if  obj.synchronization.sub_sample
+                %Set up a LS estimation for figuring out a subsample delay.
+                X = [out [0; out(1:end-1)]];
+                
+                coeffs = (X'*X) \ (X'*original_signal_input);
+                
+                out = X*coeffs;
+            end
+            
         end
         function v = f_cfr_fitz(obj,z,L,N,Fs)
             %f_cfr_fitz Method for coarse CFO correction and estimation.
