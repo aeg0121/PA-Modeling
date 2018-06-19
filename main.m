@@ -7,6 +7,10 @@ clear; clc; close all;
 %     + SNR
 %     + ACLR
 % - Crest Factor Reduction
+% - Investigate White Noise Scaling
+% - Investigate the sensitivity of the coeffs
+% - Why do coeffs have 180deg variability?
+
 
 %% Set up the experiment
 params.PA_board = 'WARP';      % either 'WARP', 'webRF', or 'none'
