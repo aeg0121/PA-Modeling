@@ -18,10 +18,12 @@ classdef WARP  < handle
         filters
         synchronization
         dc
+        TX
+        RX
     end
     
     methods
-        function obj = WARP(N)
+        function obj = WARP(params)
             %WARP class constructor. Sets up a WARP object with the warp board
             %configured with some gain on some channel.
             %
@@ -29,8 +31,18 @@ classdef WARP  < handle
             %     N: Number of warpv3 nodes.
             %
             
+            N = params.nBoards;
             
             USE_AGC = false;        % Use the AGC if running on WARP hardware
+            
+            switch params.RF_port
+                case 'A2B'
+                    obj.TX = 'RF_A';
+                    obj.RX = 'RF_B';
+                case 'B2A'
+                    obj.TX = 'RF_B';
+                    obj.RX = 'RF_A';
+            end
             
             % RX variables
             obj.channels.RX        = 6;
@@ -71,8 +83,8 @@ classdef WARP  < handle
             obj.ifc_ids = wl_getInterfaceIDs(obj.nodes(1));
             
             %Set Channel Settings
-            wl_interfaceCmd(obj.nodes, obj.ifc_ids.RF_A, 'channel', 2.4, obj.channels.TX);
-            wl_interfaceCmd(obj.nodes, obj.ifc_ids.RF_B, 'channel', 2.4, obj.channels.RX);
+            wl_interfaceCmd(obj.nodes, obj.ifc_ids.(obj.TX), 'channel', 2.4, obj.channels.TX);
+            wl_interfaceCmd(obj.nodes, obj.ifc_ids.(obj.RX), 'channel', 2.4, obj.channels.RX);
             
             %Set Filter Settings
             wl_interfaceCmd(obj.nodes, obj.ifc_ids.RF_ALL, 'rx_lpf_corn_freq', obj.filters.RX_LPF);
@@ -127,7 +139,7 @@ classdef WARP  < handle
             %
             % Args:
             %     txData1: vector of data to send
-            %     sync:    bool for performing sync or not.           
+            %     sync:    bool for performing sync or not.
             
             %Update the TX and RX lengths
             original_signal_input = txData1;
@@ -154,19 +166,19 @@ classdef WARP  < handle
             
             % Loop to get the right gain setting on RX.
             while(1)
-                wl_basebandCmd(obj.node_tx, [obj.ifc_ids.RF_A], 'write_IQ', txData1);
+                wl_basebandCmd(obj.node_tx, [obj.ifc_ids.(obj.TX)], 'write_IQ', txData1);
                 
                 %Enable TX/RX nodes and their buffers
-                wl_interfaceCmd(obj.node_tx, obj.ifc_ids.RF_A, 'tx_en');
-                wl_basebandCmd(obj.node_tx, obj.ifc_ids.RF_A, 'tx_buff_en');
-                wl_interfaceCmd(obj.node_rx, obj.ifc_ids.RF_B, 'rx_en');
-                wl_basebandCmd(obj.node_rx, obj.ifc_ids.RF_B, 'rx_buff_en');
+                wl_interfaceCmd(obj.node_tx, obj.ifc_ids.(obj.TX), 'tx_en');
+                wl_basebandCmd(obj.node_tx, obj.ifc_ids.(obj.TX), 'tx_buff_en');
+                wl_interfaceCmd(obj.node_rx, obj.ifc_ids.(obj.RX), 'rx_en');
+                wl_basebandCmd(obj.node_rx, obj.ifc_ids.(obj.RX), 'rx_buff_en');
                 
                 %Send trigger to start
                 obj.eth_trig.send();
                 
                 %Get the values from the RX node
-                rx_iq    = wl_basebandCmd(obj.node_rx, [obj.ifc_ids.RF_B], 'read_IQ', 0, obj.rx_length);
+                rx_iq    = wl_basebandCmd(obj.node_rx, [obj.ifc_ids.(obj.RX)], 'read_IQ', 0, obj.rx_length);
                 %rx_rssi  = wl_basebandCmd(obj.node_rx, [obj.ifc_ids.RF_B], 'read_RSSI', 0, rssi_length);
                 
                 if max(abs(real(rx_iq)))>0.99 | max(abs(imag(rx_iq)))>0.99
@@ -183,10 +195,10 @@ classdef WARP  < handle
             end
             
             %Turn things off
-            wl_basebandCmd(obj.nodes, obj.ifc_ids.RF_A, 'tx_rx_buff_dis');
-            wl_interfaceCmd(obj.nodes, obj.ifc_ids.RF_A, 'tx_rx_dis');
-            wl_basebandCmd(obj.nodes, obj.ifc_ids.RF_B, 'tx_rx_buff_dis');
-            wl_interfaceCmd(obj.nodes, obj.ifc_ids.RF_B, 'tx_rx_dis');
+            wl_basebandCmd(obj.nodes, obj.ifc_ids.(obj.TX), 'tx_rx_buff_dis');
+            wl_interfaceCmd(obj.nodes, obj.ifc_ids.(obj.TX), 'tx_rx_dis');
+            wl_basebandCmd(obj.nodes, obj.ifc_ids.(obj.RX), 'tx_rx_buff_dis');
+            wl_interfaceCmd(obj.nodes, obj.ifc_ids.(obj.RX), 'tx_rx_dis');
             
             if(sync)
                 if(obj.synchronization.done == 0) %Is this the 1st time?

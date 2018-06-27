@@ -14,8 +14,9 @@ clear; clc; close all;
 
 %% Set up the experiment
 params.PA_board = 'WARP';      % either 'WARP', 'webRF', or 'none'
+params.RF_port  = 'A2B';       % Broadcast from RF A to RF B. Can also do 'B2A'
 params.signal_type = 'WGN';    % either 'OFDM' or 'WGN' or 'CA'
-params.use_random_signal = 1;   % 1 forces a new OFDM each time. 0 will use the same random OFDM signal
+params.use_random_signal = 1;  % 1 forces a new OFDM each time. 0 will use the same random OFDM signal
 params.signal_bw = 5;          % Bandwidth of the OFDM of WGN signal
 params.channel = 1+0i;
 
@@ -50,7 +51,8 @@ end
 function [board, signal] = setup(params)
 switch params.PA_board
     case 'WARP'
-        board = WARP(1);
+        params.nBoards = 1;            % Number of WARP boards
+        board = WARP(params);
         params.desired_sampling_rate = 40e6;    % WARP board sampling rate.
     case 'none'
         board = PowerAmplifier(0, '', 5, 5);
