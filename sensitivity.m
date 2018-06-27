@@ -1,22 +1,12 @@
-clear; clc; close all;
-
-%% TODO:
-% - Add other PA types
-% - MIMO
-% - Add statistics.
-%     + SNR
-%     + ACLR
-% - Crest Factor Reduction
-% - Investigate White Noise Scaling
-% - Investigate the sensitivity of the coeffs
-% - Why do coeffs have 180deg variability?
-
+%% Sensitivity Analysis
+% We seek to understand the sensitivity of the various coefficients. How
+% much does a small epilon change in beta have on the performance of the
+% model? 
 
 %% Set up the experiment
 params.PA_board = 'WARP';      % either 'WARP', 'webRF', or 'none'
-params.RF_port  = 'A2B';       % Broadcast from RF A to RF B. Can also do 'B2A'
-params.signal_type = 'WGN';    % either 'OFDM' or 'WGN' or 'CA'
-params.use_random_signal = 1;  % 1 forces a new OFDM each time. 0 will use the same random OFDM signal
+params.signal_type = 'OFDM';    % either 'OFDM' or 'WGN' or 'CA'
+params.use_random_signal = 1;   % 1 forces a new OFDM each time. 0 will use the same random OFDM signal
 params.signal_bw = 5;          % Bandwidth of the OFDM of WGN signal
 params.channel = 1+0i;
 
@@ -33,26 +23,29 @@ params.number_of_samples = 10000;
 signal = signal.transmit(board, params.channel);
 
 pa_models = evaluate_pa_models(signal, board.node_tx.serialNumber);
-pa_tables = PA_Tables(pa_models);
 
-%% Plots
-try
-    plot_results('psd', 'PA Input', signal.pre_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
-    plot_results('psd', 'PA Output', signal.post_pa.upsampled_td, signal.settings.sampling_rate * signal.settings.upsample_rate);
-    
-    plot_results('am/am', 'Original Signal', signal.pre_pa.upsampled_td, signal.post_pa.upsampled_td);
-    plot_results('model', '7th Order, 4 Taps', pa_models(7,4).transmit(signal.pre_pa.upsampled_td), signal.pre_pa.upsampled_td);
-    
-    plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols);
-    plot_results('constellation', 'Received Symbols', signal.post_pa.frequency_domain_symbols);
+%Extract this model.
+pa_models74 = pa_models(7,4);
+
+%Make a small changes in a box around each param.
+original = pa_models74.PolyCoeffs(1);
+y = signal.post_pa.upsampled_td;
+count = 1;
+mse = zeros(25,1);
+for a =-1:0.5:1
+    for b = -1:0.5:1
+        pa_models74.PolyCoeffs(1) = original + a + b*1i;
+        output = pa_models74.transmit(signal.pre_pa.upsampled_td);
+        mse(count) = norm(y - output)^2/ norm(y)^2;
+        count = count + 1;
+    end
 end
 
 %% Helper Functions
 function [board, signal] = setup(params)
 switch params.PA_board
     case 'WARP'
-        params.nBoards = 1;            % Number of WARP boards
-        board = WARP(params);
+        board = WARP(1);
         params.desired_sampling_rate = 40e6;    % WARP board sampling rate.
     case 'none'
         board = PowerAmplifier(0, '', 5, 5);
