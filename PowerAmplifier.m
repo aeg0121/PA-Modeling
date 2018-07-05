@@ -92,6 +92,13 @@ classdef PowerAmplifier
          
          %obj.mse_of_fit = mean(abs(y-model_pa_output).^2);
          obj.mse_of_fit = norm(y - model_pa_output)^2 / norm(y)^2;
+         
+         % For looking at the MSE of the model.
+         %error_vector = y - model_pa_output;
+         %mean(error_vector)
+         %std(error_vector)
+         
+         
       end
       
       function pa_output = transmit(obj, in)
