@@ -214,6 +214,7 @@ classdef WARP  < handle
             end
             
             out = rx_iq * norm(original_signal_input) / norm(rx_iq);
+            %out = rx_iq * sum(abs(original_signal_input)) / sum(abs(rx_iq));
             
             if  obj.synchronization.sub_sample
                 %Set up a LS estimation for figuring out a subsample delay.
