@@ -24,6 +24,7 @@ classdef Signal
             out = upfirdn(in, obj.tools.upsample_rrcFilter, obj.settings.upsample_rate);
         end
         
+        
         function out = down_sample(obj, in)
             
             % Anti alias filter
@@ -39,8 +40,8 @@ classdef Signal
             out = out(1:obj.settings.fft_size*obj.settings.number_of_symbols);
         end
         
+        
         function obj = calculate_PAPR(obj)
-            
             % EVM
             error_vector = obj.post_pa.fd_symbols - obj.pre_pa.frequency_domain_symbols;
             max_reference = max(abs(obj.pre_pa.frequency_domain_symbols));
@@ -70,6 +71,19 @@ classdef Signal
             title('CCDF'),axis([0 14 1e-5 1])
         end
         
+        
+        function [out, scale_factor] = normalize_for_pa(obj, in, RMS_power)
+            scale_factor = RMS_power/rms(in);
+            out = in * scale_factor;
+            if abs(rms(out) - RMS_power) > 0.01
+                error('RMS is wrong.');
+            end
+            
+            max_real = max(abs(real(out)));
+            max_imag = max(abs(imag(out)));
+            max_max = max(max_real, max_imag);
+            fprintf('Maximum value: %1.2f\n', max_max);
+        end
     end
 end
 

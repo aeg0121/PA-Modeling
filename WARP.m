@@ -157,12 +157,13 @@ classdef WARP  < handle
             txData1 = txData1 - obj.dc.real - obj.dc.imag*j;
             
             %Normalize for TX
-            max_amplitude = 0.7;
             max_real = max(abs(real(txData1)));
             max_imag = max(abs(imag(txData1)));
             max_max = max(max_real, max_imag);
+            if max_max > 0.95
+                error('Saturating DAC of WARP.');
+            end
             
-            txData1 = txData1 * max_amplitude / max_max;
             
             % Loop to get the right gain setting on RX.
             while(1)
@@ -214,6 +215,7 @@ classdef WARP  < handle
             end
             
             out = rx_iq * norm(original_signal_input) / norm(rx_iq);
+            %out = rx_iq * sum(abs(original_signal_input)) / sum(abs(rx_iq));
             
             if  obj.synchronization.sub_sample
                 %Set up a LS estimation for figuring out a subsample delay.
