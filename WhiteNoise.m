@@ -4,7 +4,7 @@ classdef WhiteNoise < Signal
     %
     
     methods
-        function obj = WhiteNoise(signal_bw, desired_sampling_rate, length_in_samples, use_random)
+        function obj = WhiteNoise(params) %signal_bw, desired_sampling_rate, length_in_samples, use_random)
             %WhiteNoise Construct an instance of this class. Will create a WhiteNoise
             %signal in the frequency and time domain. Will also upsample for PA
             %
@@ -15,13 +15,13 @@ classdef WhiteNoise < Signal
             %	Author:	Chance Tarver (2018)
             %		tarver.chance@gmail.com
             
-            obj.settings.use_random = use_random;
-            obj.settings.number_of_symbols = length_in_samples;
+            obj.settings.use_random = params.use_random_signal;
+            obj.settings.number_of_symbols = params.number_of_samples;
             
-            obj.settings.sampling_rate = signal_bw*1e6;
+            obj.settings.sampling_rate = params.signal_bw*1e6;
             
             %Set up upsampling and downsampling
-            obj.settings.upsample_rate = floor(desired_sampling_rate/(signal_bw*1e6));
+            obj.settings.upsample_rate = floor(params.desired_sampling_rate/(obj.settings.sampling_rate));
             beta = 0.25;
             obj.settings.upsample_span = 60;
             samples_per_symbol = obj.settings.upsample_rate;
@@ -32,18 +32,19 @@ classdef WhiteNoise < Signal
             obj.settings.fft_size = 1; % For compatiability with Signal class
             
             % Make the signal
-            obj.pre_pa.time_domain = wgn(length_in_samples,1,0) + 1i *  wgn(length_in_samples,1,0);
+            obj.pre_pa.time_domain = wgn(params.number_of_samples, 1, 0) + 1i *  wgn(params.number_of_samples, 1, 0);
             
         end
-        function obj = transmit(obj, board, channel)
+        
+        
+        function obj = transmit(obj, board, channel, rms_power)
             obj.pre_pa.upsampled_td = obj.up_sample(obj.pre_pa.time_domain);
-            obj.post_pa.upsampled_td = channel * board.transmit(obj.pre_pa.upsampled_td);
+            [obj.pre_pa.up_td_scaled, obj.pre_pa.scaling_factor] = obj.normalize_for_pa(obj.pre_pa.upsampled_td, rms_power);
+            obj.post_pa.up_td_scaled = channel * board.transmit(obj.pre_pa.up_td_scaled);
+            obj.post_pa.upsampled_td = obj.post_pa.up_td_scaled/obj.pre_pa.scaling_factor;
             obj.post_pa.time_domain = obj.down_sample(obj.post_pa.upsampled_td);
             obj.post_pa.time_domain  = obj.post_pa.time_domain / ...
                 norm(obj.post_pa.time_domain) * norm(obj.pre_pa.time_domain);
         end
-        
-        
     end
 end
-

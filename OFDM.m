@@ -18,7 +18,7 @@ classdef OFDM < Signal
     end
     
     methods
-        function obj = OFDM(bandwidth, desired_rate, number_of_symbols, use_random, modulation)
+        function obj = OFDM(params)%bandwidth, desired_rate, number_of_symbols, use_random, modulation)
             %OFDM Construct an instance of this class. Will create an OFDM
             %signal in the frequency and time domain. Will also upsample for PA
             %
@@ -39,18 +39,18 @@ classdef OFDM < Signal
                 obj.resource_blocks_library);
             
             %Set up properties of class
-            obj.settings.bandwidth = bandwidth;
-            obj.settings.resource_blocks = RB_dictionary(bandwidth);
+            obj.settings.bandwidth = params.signal_bw;
+            obj.settings.resource_blocks = RB_dictionary(params.signal_bw);
             obj.settings.subcarriers_used = obj.settings.resource_blocks * ...
                 obj.SUBCARRIERS_PER_RESOURCE_BLOCK;
             obj.settings.fft_size = 2^ceil(log2(obj.settings.subcarriers_used));
             obj.settings.sampling_rate = obj.SUBCARRIER_SPACING * obj.settings.fft_size;
-            obj.settings.symbol_alphabet = obj.QAM_Alphabet(modulation);
-            obj.settings.use_random = use_random;
-            obj.settings.number_of_symbols = number_of_symbols;
+            obj.settings.symbol_alphabet = obj.QAM_Alphabet(params.constellation);
+            obj.settings.use_random = params.use_random_signal;
+            obj.settings.number_of_symbols = params.number_of_symbols;
             
             %Set up upsampling and downsampling
-            obj.settings.upsample_rate = floor(desired_rate/obj.settings.sampling_rate);
+            obj.settings.upsample_rate = floor(params.desired_sampling_rate/obj.settings.sampling_rate);
             beta = 0.25;
             obj.settings.upsample_span = 60;
             samples_per_symbol = obj.settings.upsample_rate;
@@ -59,19 +59,20 @@ classdef OFDM < Signal
                 1/obj.settings.upsample_rate 1], [1 1 0 0]);
             
             %Create random symbols on the constellation
-            obj.pre_pa.frequency_domain_symbols = zeros(obj.settings.subcarriers_used, number_of_symbols);
-            if(use_random)
+            obj.pre_pa.frequency_domain_symbols = zeros(obj.settings.subcarriers_used, params.number_of_symbols);
+            if(params.use_random_signal)
                 obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
-                    length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, number_of_symbols)));
+                    length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, params.number_of_symbols)));
             else
                 rng(0); % repeatable random seed
                 obj.pre_pa.frequency_domain_symbols = obj.settings.symbol_alphabet(ceil(...
-                    length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, number_of_symbols)));
+                    length(obj.settings.symbol_alphabet) * rand(obj.settings.subcarriers_used, params.number_of_symbols)));
                 rng shuffle; % seed with something else
             end
             obj.pre_pa.frequency_domain_symbols = obj.normalize_symbols(obj.pre_pa.frequency_domain_symbols);
             obj.pre_pa.time_domain = obj.frequency_to_time_domain(obj.pre_pa.frequency_domain_symbols);
         end
+        
         
         function out = frequency_to_time_domain(obj, in)
             %frequency_to_time_domain Method that can be used to perform the
@@ -94,6 +95,7 @@ classdef OFDM < Signal
             out = ifft_output(:); % make a single column
         end
         
+        
         function out = time_domain_to_frequency(obj, in)
             %time_domain_to_frequency Method that can be used to perform the
             %DFT to go to the frequency domain signal for OFDM. It assumes
@@ -114,6 +116,7 @@ classdef OFDM < Signal
             out(obj.settings.subcarriers_used/2+1:end) = fftout(2:obj.settings.subcarriers_used/2+1);
         end
         
+        
         function alphabet = QAM_Alphabet(obj, ModulationType)
             %QAM_Alphabet Function to create an alphabet of points of the
             %constellation
@@ -132,6 +135,7 @@ classdef OFDM < Signal
             alphabet = const_qam;
         end
         
+        
         function out = normalize_symbols(obj,in)
             out = zeros(obj.settings.subcarriers_used, obj.settings.number_of_symbols);
             for i = 1:obj.settings.number_of_symbols
@@ -149,9 +153,11 @@ classdef OFDM < Signal
         end
         
         
-        function obj = transmit(obj, board, channel)
+        function obj = transmit(obj, board, channel, rms_power)
             obj.pre_pa.upsampled_td = obj.up_sample(obj.pre_pa.time_domain);
-            obj.post_pa.upsampled_td = channel * board.transmit(obj.pre_pa.upsampled_td);
+            [obj.pre_pa.up_td_scaled, obj.pre_pa.scaling_factor] = obj.normalize_for_pa(obj.pre_pa.upsampled_td, rms_power);
+            obj.post_pa.up_td_scaled = channel * board.transmit(obj.pre_pa.up_td_scaled);
+            obj.post_pa.upsampled_td = obj.post_pa.up_td_scaled/obj.pre_pa.scaling_factor;
             obj.post_pa.time_domain = obj.down_sample(obj.post_pa.upsampled_td);
             obj.post_pa.time_domain  = obj.post_pa.time_domain / ...
                 norm(obj.post_pa.time_domain) * norm(obj.pre_pa.time_domain);

@@ -1,4 +1,4 @@
-function pa_models = evaluate_pa_models(signal,number)
+function pa_models = evaluate_pa_models(signal, number)
 %evaluate_pa_models Create models with different nonlinear orders and
 %memory depths. Plot the MSE of each and return a good model.
 
@@ -13,7 +13,7 @@ mse_transpose = zeros(MAX_MEMORY_ORDER, (MAX_NONLINEAR_ORDER+1)/2); %Row major f
 
 counter = 1;
 for i = 1:2:MAX_NONLINEAR_ORDER
-    for j = 1:MAX_MEMORY_ORDER      
+    for j = 1:MAX_MEMORY_ORDER
         pa_models(i,j) = PowerAmplifier(1, signal, i, j, USE_ORTHOGONAL);
         mse_transpose(counter) = pa_models(i,j).mse_of_fit;
         counter = counter + 1;

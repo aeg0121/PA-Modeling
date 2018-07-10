@@ -65,15 +65,15 @@ classdef PowerAmplifier
             %
             
             % Construct signal matrix with basis vectors for each nonlinearity
-            x = signal.pre_pa.upsampled_td;
-            y = signal.post_pa.upsampled_td;
+            x = signal.pre_pa.up_td_scaled;
+            y = signal.post_pa.up_td_scaled;
             
             %x = x / rms(x);
             %scale_factor =  norm(x) / norm(signal.pre_pa.upsampled_td);
             %y = y * scale_factor;
             
-            X = obj.setup_basis_matrix(x);            
-
+            X = obj.setup_basis_matrix(x);
+            
             obj.PolyCoeffs = ((X'*X)+1e-13*eye(size((X'*X)))) \ (X'*y) ;
             
             %obj.PolyCoeffs = (X'*X) \ (X'*y);
