@@ -38,6 +38,8 @@ classdef OFDM < Signal
             RB_dictionary = containers.Map(obj.bandwidth_library, ...
                 obj.resource_blocks_library);
             
+            obj.settings.label = sprintf("OFDM %d MHz", params.signal_bw);
+            
             %Set up properties of class
             obj.settings.bandwidth = params.signal_bw;
             obj.settings.resource_blocks = RB_dictionary(params.signal_bw);
@@ -111,9 +113,9 @@ classdef OFDM < Signal
             fft_in = reshape(in,obj.settings.fft_size,obj.settings.number_of_symbols);
             fftout = fft(fft_in);
             
-            out = zeros(obj.settings.subcarriers_used, 1);
-            out(1:obj.settings.subcarriers_used/2) = fftout(end - obj.settings.subcarriers_used/2 + 1:end);
-            out(obj.settings.subcarriers_used/2+1:end) = fftout(2:obj.settings.subcarriers_used/2+1);
+            out = zeros(obj.settings.subcarriers_used, obj.settings.number_of_symbols);
+            out(1:obj.settings.subcarriers_used/2, :) = fftout(end - obj.settings.subcarriers_used/2 + 1:end, :);
+            out(obj.settings.subcarriers_used/2+1:end, :) = fftout(2:obj.settings.subcarriers_used/2+1, :);
         end
         
         

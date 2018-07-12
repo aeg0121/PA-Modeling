@@ -66,10 +66,8 @@ classdef Signal
             for i = 1:length(papr)
                 y(i) = length(find(PdB >= papr(i)))/length(x); % # of samples exceeding papr(i)
             end
-            figure(20)
-            semilogy(papr,y),grid
-            xlabel('dB above average power'),ylabel('probability')
-            title('CCDF'),axis([0 14 1e-5 1])
+            
+            plot_results('ccdf', obj.settings.label, papr, y);
         end
         
         
