@@ -31,22 +31,20 @@ params.number_of_samples = 10000;
 
 % TX
 signal = signal.transmit(board, params.channel, params.RMS_power);
-signal.calculate_PAPR;
+signal = signal.calculate_PAPR;
 
 pa_models = evaluate_pa_models(signal, board.node_tx.serialNumber);
 pa_tables = PA_Tables(pa_models);
 
 %% Plots
-try
-    plot_results('psd', 'PA Input', signal.pre_pa.up_td_scaled, signal.settings.sampling_rate * signal.settings.upsample_rate);
-    plot_results('psd', 'PA Output', signal.post_pa.up_td_scaled, signal.settings.sampling_rate * signal.settings.upsample_rate);
-    
-    plot_results('am/am', 'Original Signal', signal.pre_pa.up_td_scaled, signal.post_pa.up_td_scaled);
-    plot_results('model', '7th Order, 4 Taps', pa_models(7,4).transmit(signal.pre_pa.up_td_scaled), signal.pre_pa.up_td_scaled);
-    
-    plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols);
-    plot_results('constellation', 'Received Symbols', signal.post_pa.frequency_domain_symbols);
-end
+plot_results('psd', 'PA Input', signal.pre_pa.up_td_scaled, signal.settings.sampling_rate * signal.settings.upsample_rate);
+plot_results('psd', 'PA Output', signal.post_pa.up_td_scaled, signal.settings.sampling_rate * signal.settings.upsample_rate);
+
+plot_results('am/am', 'Original Signal', signal.pre_pa.up_td_scaled, signal.post_pa.up_td_scaled);
+plot_results('model', '7th Order, 4 Taps', pa_models(7,4).transmit(signal.pre_pa.up_td_scaled), signal.pre_pa.up_td_scaled);
+
+plot_results('constellation', 'Received Symbols', signal.post_pa.frequency_domain_symbols, signal.statistics.evm);
+plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols, []);
 
 %% Helper Functions
 function [board, signal] = setup(params)
