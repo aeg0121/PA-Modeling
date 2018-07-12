@@ -31,6 +31,7 @@ params.number_of_samples = 10000;
 
 % TX
 signal = signal.transmit(board, params.channel, params.RMS_power);
+signal.calculate_PAPR;
 
 pa_models = evaluate_pa_models(signal, board.node_tx.serialNumber);
 pa_tables = PA_Tables(pa_models);
