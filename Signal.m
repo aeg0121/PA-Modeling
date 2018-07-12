@@ -20,6 +20,7 @@ classdef Signal
             
         end
         
+        
         function out = up_sample(obj, in)
             out = upfirdn(in, obj.tools.upsample_rrcFilter, obj.settings.upsample_rate);
         end
