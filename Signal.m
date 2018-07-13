@@ -44,11 +44,14 @@ classdef Signal
         
         function obj = calculate_PAPR(obj)
             % EVM
-            error_vector = obj.post_pa.frequency_domain_symbols - obj.pre_pa.frequency_domain_symbols;
-            max_reference = max(abs(obj.pre_pa.frequency_domain_symbols));
+            try
+                error_vector = obj.post_pa.frequency_domain_symbols - obj.pre_pa.frequency_domain_symbols;
+                obj.statistics.evm = 100 * norm(error_vector) / norm(obj.pre_pa.frequency_domain_symbols);
+            end
+            %max_reference = max(abs(obj.pre_pa.frequency_domain_symbols));
             %Maybe need average power reference instead
             % https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=4176888
-            obj.statistics.evm = 100 * norm(error_vector) / norm(obj.pre_pa.frequency_domain_symbols);
+        
             
             x = obj.pre_pa.time_domain;
             % PAPR
