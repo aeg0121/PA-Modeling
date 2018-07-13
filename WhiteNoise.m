@@ -20,6 +20,8 @@ classdef WhiteNoise < Signal
             
             obj.settings.sampling_rate = params.signal_bw*1e6;
             
+            obj.settings.label = sprintf("WGN %d MHz", params.signal_bw);
+            
             %Set up upsampling and downsampling
             obj.settings.upsample_rate = floor(params.desired_sampling_rate/(obj.settings.sampling_rate));
             beta = 0.25;
