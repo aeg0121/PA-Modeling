@@ -28,7 +28,7 @@ classdef PA_Tables
                     end
                 end
             end
-            
+
             if load_flag
                 for i = 1:2:MAX_NONLINEAR_ORDER
                     for j = 1:MAX_MEMORY_ORDER
@@ -38,8 +38,8 @@ classdef PA_Tables
                 end
             end
             
-            save('evaluate_pa_models','obj');
-            
+            save('evaluate_pa_models','obj'); %Comment here to not save results
+      
         end
         
         function obj = pa_model_table(obj, model, i, j)

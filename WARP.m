@@ -161,7 +161,7 @@ classdef WARP  < handle
             max_imag = max(abs(imag(txData1)));
             max_max = max(max_real, max_imag);
             if max_max > 0.95
-                error('Saturating DAC of WARP.');
+                warning('Saturating DAC of WARP.');
             end
             
             

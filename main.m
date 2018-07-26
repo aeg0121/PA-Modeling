@@ -20,7 +20,7 @@ params.signal_bw = 5;          % Bandwidth of the OFDM of WGN signal
 params.channel = 1+0i;
 params.RMS_power = 0.25;
 
-%Only used in OFDM
+%Only used in OFDM 
 params.constellation = 'QPSK'; % Only used in OFDM
 params.number_of_symbols = 30;
 
@@ -42,10 +42,10 @@ plot_results('psd', 'PA Output', signal.post_pa.up_td_scaled, signal.settings.sa
 
 plot_results('am/am', 'Original Signal', signal.pre_pa.up_td_scaled, signal.post_pa.up_td_scaled);
 plot_results('model', '7th Order, 4 Taps', pa_models(7,4).transmit(signal.pre_pa.up_td_scaled), signal.pre_pa.up_td_scaled);
-
-plot_results('constellation', 'Received Symbols', signal.post_pa.frequency_domain_symbols, signal.statistics.evm);
-plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols, []);
-
+try
+    plot_results('constellation', 'Received Symbols', signal.post_pa.frequency_domain_symbols, signal.statistics.evm);
+    plot_results('constellation', 'Original Symbols', signal.pre_pa.frequency_domain_symbols, []);
+end
 %% Helper Functions
 function [board, signal] = setup(params)
 switch params.PA_board
