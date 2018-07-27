@@ -140,7 +140,9 @@ As you can see, the differences in variance can be stark, and demonstrate how mu
 ## Troubleshooting
 
 Issue: I have some error where nodes with a certain ID aren't responding
+
 Answer: Try turning the board on
 
 Issue: By the graph results after running Main, the board looks broken, but the constellation is a little more contained, and the NMSE isn't too bad
+
 Answer: Attatch the coaxials. 
