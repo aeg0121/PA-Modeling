@@ -120,7 +120,7 @@ To create the graph, we went through multiple tables and took the rows containin
 
 If you are creating multiple graphs of data you would consider grouped together, standardizing aspects like the axis limits and image size is advised. That way you could flip through the graphs and retain the same sense of scale for each of them. 
 
-![comp](https://raw.githubusercontent.com/aeg0121/PAModeling/master/Results/July%2016%20ofdm%205%20mhz%20order74%20a2b%20PA%20comparison.png "Example Median Bar Graph")
+![comp](https://raw.githubusercontent.com/aeg0121/PA-Modeling/master/Results/July%2016%20ofdm%205%20mhz%20order74%20a2b%20PA%20comparison.png "Example Median Bar Graph")
 
 With this example, one can see the median coefficients of several boards, including one that clearly sticks out. This is the kind of results found in a broken board.
 
