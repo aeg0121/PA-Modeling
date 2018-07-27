@@ -88,7 +88,7 @@ Don't forget to ensure that what is slated for saving and loading match!
 ### 3. Run and Review Results
 When everything is set, it's time to run Main. Note that lower bandwidths take a bit longer to run, especially for WGN, so don't be discouraged if it seems to be taking its time. Out of the five figures that are plotted, these two give the clearest indication of a clean or broken board.
 
-![cc](htps://raw.githubusercontent.com/aeg0121/PA-Modeling/master/Results/Clean%20Constellation.png "Clean Constellation")
+![cc](https://raw.githubusercontent.com/aeg0121/PA-Modeling/master/Results/Clean%20Constellation.png "Clean Constellation")
 
 ![cam](https://raw.githubusercontent.com/aeg0121/PA-Modeling/master/Results/Clean%20AM%20AM.png "Clean AM AM Curve")
 
